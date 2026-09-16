@@ -105,14 +105,25 @@ function modeLabel(device, onBattery, states) {
 //   out  — on battery, the cell is draining
 //   hold — on AC but a charge threshold is keeping it parked
 //   full — on AC, fully charged, nothing moving
+// The battery's own state outranks UPower's onBattery: a USB-C charger too weak
+// for the load keeps onBattery false while the cell drains, and that is "out".
 function flowMode(device, onBattery, states) {
   var d = device || {}
   if (!d.isPresent) return "none"
+  if (pluggedButDraining(d, onBattery, states)) return "out"
   if (chargeThresholdActive(d, onBattery, states)) return "hold"
   if (onBattery) return "out"
   var s = states || {}
   if (d.state === s.FullyCharged || batteryFraction(d) >= 1) return "full"
   return "in"
+}
+
+// A charger is connected but losing to the load: onBattery says AC, the cell
+// says Discharging. Seen on gus with a 3 A USB-C PD brick under a 100 W load.
+function pluggedButDraining(device, onBattery, states) {
+  var d = device || {}
+  var s = states || {}
+  return !!(d.isPresent && !onBattery && s.Discharging !== undefined && d.state === s.Discharging)
 }
 
 // Low only matters while draining: a 5% battery on the charger is fine.
@@ -568,7 +579,8 @@ function traceScale(samples, floor) {
   return Math.ceil(need / 60) * 60
 }
 
-function statusLine(mode, watts, thresholdText) {
+function statusLine(mode, watts, thresholdText, plugged) {
+  if (mode === "out" && plugged) return "Charger too weak"
   if (mode === "in") return "Charging · " + formatWatts(watts) + " in"
   if (mode === "out") return "On battery · " + formatWatts(watts) + " out"
   if (mode === "hold") return "Holding" + (thresholdText ? " at " + thresholdText : "")
@@ -576,7 +588,7 @@ function statusLine(mode, watts, thresholdText) {
   return ""
 }
 
-function tooltip(mode, percent, watts, timeText, thresholdText) {
+function tooltip(mode, percent, watts, timeText, thresholdText, plugged) {
   var p = Math.round(Number(percent) || 0)
   var hasTime = typeof timeText === "string" && timeText !== "" && timeText !== "—"
   var parts = []
@@ -584,6 +596,10 @@ function tooltip(mode, percent, watts, timeText, thresholdText) {
     parts.push("Charging " + p + "%")
     parts.push(formatWatts(watts) + " in")
     if (hasTime) parts.push(timeText + " to full")
+  } else if (mode === "out" && plugged) {
+    parts.push("Weak charger " + p + "%")
+    parts.push(formatWatts(watts) + " out")
+    if (hasTime) parts.push(timeText + " left")
   } else if (mode === "out") {
     parts.push("On battery " + p + "%")
     parts.push(formatWatts(watts) + " out")
@@ -643,6 +659,7 @@ if (typeof module !== "undefined") {
     batteryIcon: batteryIcon,
     modeLabel: modeLabel,
     flowMode: flowMode,
+    pluggedButDraining: pluggedButDraining,
     isLow: isLow,
     flowRole: flowRole,
     clamp01: clamp01,

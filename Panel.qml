@@ -164,9 +164,15 @@ Panel {
     var device = UPower.displayDevice
     return device && device.isPresent && device.state === UPowerDeviceState.FullyCharged && !root.chargeThresholdActive
   }
+  // Draining, by the cell's own state: a weak USB-C charger keeps
+  // UPower.onBattery false while the battery still runs down.
+  readonly property bool pluggedButDraining: {
+    var device = UPower.displayDevice
+    return Model.pluggedButDraining(device, UPower.onBattery, upowerStates())
+  }
   readonly property bool discharging: {
     var device = UPower.displayDevice
-    return !!(device && device.isPresent && UPower.onBattery)
+    return !!(device && device.isPresent && UPower.onBattery) || pluggedButDraining
   }
   readonly property bool chargeThresholdActive: {
     var device = UPower.displayDevice
@@ -181,7 +187,7 @@ Panel {
   readonly property real batteryFraction: preview ? preview.fraction : liveFraction
   readonly property bool charging: {
     var d = UPower.displayDevice
-    return d && d.isPresent && !UPower.onBattery && !root.batteryFlowIdle
+    return d && d.isPresent && !root.discharging && !root.batteryFlowIdle
   }
 
   // ---- Flux state --------------------------------------------------------------
@@ -208,8 +214,9 @@ Panel {
     return Model.formatDuration(Model.upowerSeconds(d, root.flowMode))
   }
   readonly property string thresholdText: batteryInfo.threshold || ""
-  readonly property string tooltipText: Model.tooltip(flowMode, percent, watts, timeText, thresholdText)
-  readonly property string heroStatusText: Model.statusLine(flowMode, watts, thresholdText)
+  readonly property string tooltipText: Model.tooltip(flowMode, percent, watts, timeText, thresholdText, livePlugged)
+  readonly property string heroStatusText: Model.statusLine(flowMode, watts, thresholdText, livePlugged)
+  readonly property bool livePlugged: !preview && pluggedButDraining
 
   readonly property int health: {
     var d = UPower.displayDevice
@@ -421,7 +428,7 @@ Panel {
 
   function setProfile(profile) {
     if (!profile || actionProc.running) return
-    actionProc.command = ["omarchy-powerprofiles-set", root.discharging ? "battery" : "ac", profile]
+    actionProc.command = ["omarchy-powerprofiles-set", UPower.onBattery ? "battery" : "ac", profile]
     actionProc.running = true
   }
 
@@ -462,6 +469,7 @@ Panel {
     return JSON.stringify({
       plugin: "pi.power",
       mode: root.flowMode,
+      pluggedButDraining: root.pluggedButDraining,
       percent: root.percent,
       watts: root.watts,
       low: root.low,

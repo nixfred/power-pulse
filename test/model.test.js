@@ -16,6 +16,19 @@ test("flowMode: the five states", () => {
   assert.equal(Model.flowMode(device({ state: states.FullyCharged, percentage: 0.8 }), false, states), "hold")
 })
 
+test("flowMode: a charger too weak for the load is draining, not charging", () => {
+  // gus 2026-09-16: USB-C PD online, UPower onBattery=false, BAT1 Discharging at 58 W.
+  const weak = device({ state: states.Discharging, percentage: 0.76 })
+  assert.equal(Model.pluggedButDraining(weak, false, states), true)
+  assert.equal(Model.pluggedButDraining(weak, true, states), false, "really on battery is plain out")
+  assert.equal(Model.pluggedButDraining(device({ state: states.Charging }), false, states), false)
+  assert.equal(Model.pluggedButDraining({ isPresent: false }, false, states), false)
+  assert.equal(Model.flowMode(weak, false, states), "out")
+  assert.equal(Model.flowMode(device({ state: states.Discharging, percentage: 1 }), false, states), "out", "not full while draining")
+  assert.equal(Model.statusLine("out", 58.2, "", true), "Charger too weak")
+  assert.equal(Model.tooltip("out", 76, 58.2, "1h", "", true), "Weak charger 76%  ·  58.2 W out  ·  1h left")
+})
+
 test("isLow only bites while draining", () => {
   assert.equal(Model.isLow(0.15, "out", 20), true)
   assert.equal(Model.isLow(0.20, "out", 20), true)
