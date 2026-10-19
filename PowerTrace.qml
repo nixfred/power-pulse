@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // The last hour of power as bars off a centre line: up is power going in,
 // down is power going out, flat is parked. Newest at the right edge.
@@ -17,10 +18,10 @@ Item {
   property bool live: false         // power is moving: pulse the head
   property bool animate: true
   property bool low: false
-  property color accent: Color.accent
-  property color foreground: Color.popups.text
-  property color urgent: Color.urgent
-  property color muted: Color.muted
+  property color accent: Commons.Color.accent
+  property color foreground: Commons.Color.popups.text
+  property color urgent: Commons.Color.urgent
+  property color muted: Commons.Color.muted
 
   implicitHeight: Style.space(44)
 

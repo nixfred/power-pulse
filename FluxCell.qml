@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import qs.Commons
+import qs.Commons as Commons
 import "Model.js" as Model
 import "Glyphs.js" as Glyphs
 
@@ -32,14 +33,14 @@ Item {
   property bool animate: true
   property bool glow: true
   property bool hero: false
-  property color accent: Color.accent
-  property color foreground: Color.foreground
-  property color urgent: Color.urgent
-  property color muted: Color.muted
+  property color accent: Commons.Color.accent
+  property color foreground: Commons.Color.foreground
+  property color urgent: Commons.Color.urgent
+  property color muted: Commons.Color.muted
   property string fontFamily: Style.font.family
   // What sits behind the widget. The digits inside the cell wear this as an
   // outline so they read over the fill whatever colour the ramp is at.
-  property color background: Color.bar.background
+  property color background: Commons.Color.bar.background
 
   // The number inside the cell (bar only). One slot for the battery instead
   // of two: the cell grows a little and the charge is written over the fill.

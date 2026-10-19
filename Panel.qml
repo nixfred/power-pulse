@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 import "Glyphs.js" as Glyphs
@@ -92,17 +93,17 @@ Panel {
     var raw = fallbackColor
     if (r.kind === "hex") raw = r.value
     else if (r.kind === "role") {
-      if (r.value === "accent") raw = Color.accent
-      else if (r.value === "urgent") raw = Color.urgent
-      else if (r.value === "muted") raw = Color.muted
-      else raw = Color.foreground
+      if (r.value === "accent") raw = Commons.Color.accent
+      else if (r.value === "urgent") raw = Commons.Color.urgent
+      else if (r.value === "muted") raw = Commons.Color.muted
+      else raw = Commons.Color.foreground
     }
-    return vivid ? Model.glowReady(String(raw), String(Color.bar.background)) : raw
+    return vivid ? Model.glowReady(String(raw), String(Commons.Color.bar.background)) : raw
   }
 
-  readonly property color fullColor: stopColor("fullColor", "blue", Color.accent)
+  readonly property color fullColor: stopColor("fullColor", "blue", Commons.Color.accent)
   readonly property color midColor: stopColor("midColor", "yellow", "#e9bb4f")
-  readonly property color lowColor: stopColor("lowColor", "red", Color.urgent)
+  readonly property color lowColor: stopColor("lowColor", "red", Commons.Color.urgent)
 
   // ---- Preview -----------------------------------------------------------------
   // `omarchy-shell omarchy.power preview out 35` paints the cell as if it were
@@ -578,7 +579,7 @@ Panel {
     // is not a loop.
     foreground: vertical && root.batteryPresent && root.flowMode !== "none"
       ? root.levelColor
-      : (root.bar ? root.bar.barForeground : Color.foreground)
+      : (root.bar ? root.bar.barForeground : Commons.Color.foreground)
     hasVisualContent: root.batteryPresent
     fixedWidth: vertical ? -1 : Math.ceil(content.implicitWidth + scaledHorizontalMargin * 2)
     fixedHeight: vertical ? Style.bar.iconSlot : -1
@@ -605,11 +606,11 @@ Panel {
         low: root.low
         animate: root.barAnimating
         glow: root.barGlow
-        accent: Color.accent
+        accent: Commons.Color.accent
         foreground: button.foreground
         urgent: button.activeColor
-        muted: Color.muted
-        background: root.bar && !root.bar.transparent ? root.bar.background : Color.bar.background
+        muted: Commons.Color.muted
+        background: root.bar && !root.bar.transparent ? root.bar.background : Commons.Color.bar.background
         fontFamily: button.fontFamily
         fullColor: root.fullColor
         midColor: root.midColor
@@ -670,10 +671,10 @@ Panel {
             low: root.low
             animate: root.animating
             glow: root.sizzle
-            accent: Color.accent
+            accent: Commons.Color.accent
             foreground: root.bar.foreground
             urgent: root.bar.urgent
-            muted: Color.muted
+            muted: Commons.Color.muted
             fontFamily: root.bar.fontFamily
             fullColor: root.fullColor
             midColor: root.midColor
@@ -765,7 +766,7 @@ Panel {
 
             Caption { text: "LAST HOUR" }
             Item { width: Style.space(4); height: 1 }
-            Caption { text: Glyphs.glyph("arrowUp") + " IN"; color: Color.accent; opacity: 0.95 }
+            Caption { text: Glyphs.glyph("arrowUp") + " IN"; color: Commons.Color.accent; opacity: 0.95 }
             Caption { text: Glyphs.glyph("arrowDown") + " OUT" }
             Item {
               width: Math.max(0, parent.width - parent.children[0].implicitWidth - parent.children[1].width
@@ -787,10 +788,10 @@ Panel {
             live: root.flowing
             animate: root.animating
             low: root.low
-            accent: Color.accent
+            accent: Commons.Color.accent
             foreground: root.bar.foreground
             urgent: root.bar.urgent
-            muted: Color.muted
+            muted: Commons.Color.muted
           }
         }
 
