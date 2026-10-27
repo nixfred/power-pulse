@@ -29,7 +29,11 @@ CONF=/etc/default/power-pulse-charge-limit
 
 find_attr() {
   local b
-  for b in /sys/class/power_supply/BAT*; do
+  # Any system battery, not only BAT*: Asahi's Apple Silicon driver names it
+  # macsmc-battery. Peripheral batteries (scope Device) never carry the limit.
+  for b in /sys/class/power_supply/*; do
+    [[ -r $b/type && $(<"$b/type") == Battery ]] || continue
+    [[ -r $b/scope && $(<"$b/scope") == Device ]] && continue
     [[ -e $b/charge_control_end_threshold ]] || continue
     printf '%s\n' "$b/charge_control_end_threshold"
     return 0

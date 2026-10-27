@@ -55,7 +55,7 @@ check "chargeLimitSupported is a boolean ($limsup)" '[[ $limsup =~ ^(true|false)
 if [[ $limsup == true ]]; then
   check "charge limit in 50..100 ($lim)" '[[ $lim =~ ^[0-9]+$ ]] && (( lim >= 50 && lim <= 100 ))'
   check "no charge-limit error ($(jq -r .chargeLimitError <<<"$status"))" '[[ -z $(jq -r ".chargeLimitError" <<<"$status") ]]'
-  sysfs_lim=$(cat /sys/class/power_supply/BAT*/charge_control_end_threshold 2>/dev/null | head -1)
+  sysfs_lim=$(cat "$("$(dirname "$0")/../charge-limit" path)" 2>/dev/null)
   if [[ -n $sysfs_lim ]]; then
     expect=$sysfs_lim; (( expect <= 0 )) && expect=100
     check "widget agrees with the kernel (sysfs=$sysfs_lim widget=$lim)" '[[ $lim -eq $expect ]]'
